@@ -70,6 +70,52 @@ public:
     void publishLiveParameters();
 
 private:
+    struct CachedParams
+    {
+        std::atomic<float>* oversampling{nullptr};
+        std::atomic<float>* ui_mode{nullptr};
+        std::atomic<float>* input_gain{nullptr};
+        std::atomic<float>* output_gain{nullptr};
+        std::atomic<float>* mix{nullptr};
+
+        std::atomic<float>* sub_low_freq{nullptr};
+        std::atomic<float>* low_mid_freq{nullptr};
+        std::atomic<float>* mid_high_freq{nullptr};
+        std::atomic<float>* high_super_freq{nullptr};
+
+        std::atomic<float>* sub_solo{nullptr};
+        std::atomic<float>* low_solo{nullptr};
+        std::atomic<float>* mid_solo{nullptr};
+        std::atomic<float>* mid_high_solo{nullptr};
+        std::atomic<float>* high_solo{nullptr};
+
+        std::atomic<float>* sub_mute{nullptr};
+        std::atomic<float>* low_mute{nullptr};
+        std::atomic<float>* mid_mute{nullptr};
+        std::atomic<float>* mid_high_mute{nullptr};
+        std::atomic<float>* high_mute{nullptr};
+
+        struct BandParams {
+            std::atomic<float>* bypass{nullptr};
+            std::atomic<float>* mute{nullptr};
+            std::atomic<float>* gain{nullptr};
+            std::atomic<float>* warmth{nullptr};
+
+            std::atomic<float>* peak_reduction{nullptr};
+            std::atomic<float>* mode{nullptr};
+
+            std::atomic<float>* threshold{nullptr};
+            std::atomic<float>* ratio{nullptr};
+            std::atomic<float>* attack{nullptr};
+            std::atomic<float>* release{nullptr};
+            std::atomic<float>* knee{nullptr};
+            std::atomic<float>* band_mix{nullptr};
+            std::atomic<float>* engine{nullptr};
+        };
+
+        BandParams sub, low, mid, mid_high, high;
+    } cached;
+
     void pollLiveParameters();
     LiveSyncBridge liveSync;
     std::atomic<bool> isPollingLive{ false };

@@ -18,6 +18,41 @@ MultibandCompressor5BAudioProcessor::MultibandCompressor5BAudioProcessor()
 
     if (auto* osParam = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter("oversampling")))
         currentOversamplingIndex.store(osParam->getIndex(), std::memory_order_relaxed);
+
+    // Cache atomic parameter pointers to avoid real-time map lookups and string allocations
+    paramInputGain = apvts.getRawParameterValue("input_gain");
+    paramOutputGain = apvts.getRawParameterValue("output_gain");
+    paramMix = apvts.getRawParameterValue("mix");
+    paramUiMode = apvts.getRawParameterValue("ui_mode");
+
+    paramSubLowFreq = apvts.getRawParameterValue("sub_low_freq");
+    paramLowMidFreq = apvts.getRawParameterValue("low_mid_freq");
+    paramMidHighFreq = apvts.getRawParameterValue("mid_high_freq");
+    paramHighSuperFreq = apvts.getRawParameterValue("high_super_freq");
+
+    auto initBandParams = [this](BandParams& params, const juce::String& prefix) {
+        params.gain = apvts.getRawParameterValue(prefix + "_gain");
+        params.warmth = apvts.getRawParameterValue(prefix + "_warmth");
+        params.bypass = apvts.getRawParameterValue(prefix + "_bypass");
+        params.mute = apvts.getRawParameterValue(prefix + "_mute");
+        params.peakReduction = apvts.getRawParameterValue(prefix + "_peak_reduction");
+        params.limitMode = apvts.getRawParameterValue(prefix + "_mode");
+        params.threshold = apvts.getRawParameterValue(prefix + "_threshold");
+        params.ratio = apvts.getRawParameterValue(prefix + "_ratio");
+        params.attack = apvts.getRawParameterValue(prefix + "_attack");
+        params.release = apvts.getRawParameterValue(prefix + "_release");
+        params.knee = apvts.getRawParameterValue(prefix + "_knee");
+        params.bandMix = apvts.getRawParameterValue(prefix + "_band_mix");
+        params.solo = apvts.getRawParameterValue(prefix + "_solo");
+        params.engine = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter(prefix + "_engine"));
+    };
+
+    initBandParams(subParams, "sub");
+    initBandParams(lowParams, "low");
+    initBandParams(midParams, "mid");
+    initBandParams(midHighParams, "mid_high");
+    initBandParams(highParams, "high");
+
 }
 
 MultibandCompressor5BAudioProcessor::~MultibandCompressor5BAudioProcessor()
@@ -202,10 +237,10 @@ void MultibandCompressor5BAudioProcessor::prepareToPlay(double sampleRate, int s
     smoothedF3.reset(baseSampleRate, 0.05);
     smoothedF4.reset(baseSampleRate, 0.05);
 
-    float f1 = apvts.getRawParameterValue("sub_low_freq")->load();
-    float f2 = apvts.getRawParameterValue("low_mid_freq")->load();
-    float f3 = apvts.getRawParameterValue("mid_high_freq")->load();
-    float f4 = apvts.getRawParameterValue("high_super_freq")->load();
+    float f1 = paramSubLowFreq->load();
+    float f2 = paramLowMidFreq->load();
+    float f3 = paramMidHighFreq->load();
+    float f4 = paramHighSuperFreq->load();
     smoothedF1.setCurrentAndTargetValue(f1);
     smoothedF2.setCurrentAndTargetValue(f2);
     smoothedF3.setCurrentAndTargetValue(f3);
@@ -363,58 +398,57 @@ void MultibandCompressor5BAudioProcessor::processAudio(juce::AudioBuffer<SampleT
     }
 
     // Input metering & Gain
-    float inGainDb = apvts.getRawParameterValue("input_gain")->load();
+    float inGainDb = paramInputGain->load();
     float inGainLin = juce::Decibels::decibelsToGain(inGainDb);
     float inPeak = static_cast<float>(buffer.getMagnitude(0, totalSamples));
     inputLevel.store(juce::Decibels::gainToDecibels(juce::jmax(1e-6f, inPeak * inGainLin)), std::memory_order_relaxed);
 
-    float outGainDb = apvts.getRawParameterValue("output_gain")->load();
+    float outGainDb = paramOutputGain->load();
     float outGainLin = juce::Decibels::decibelsToGain(outGainDb);
-    float masterMix = apvts.getRawParameterValue("mix")->load() / 100.0f;
-    bool isAdvance = apvts.getRawParameterValue("ui_mode")->load() > 0.5f;
+    float masterMix = paramMix->load() / 100.0f;
+    bool isAdvance = paramUiMode->load() > 0.5f;
 
     // Solo flags
-    bool subSolo = apvts.getRawParameterValue("sub_solo")->load() > 0.5f;
-    bool lowSolo = apvts.getRawParameterValue("low_solo")->load() > 0.5f;
-    bool midSolo = apvts.getRawParameterValue("mid_solo")->load() > 0.5f;
-    bool midHighSolo = apvts.getRawParameterValue("mid_high_solo")->load() > 0.5f;
-    bool highSolo = apvts.getRawParameterValue("high_solo")->load() > 0.5f;
+    bool subSolo = subParams.solo->load() > 0.5f;
+    bool lowSolo = lowParams.solo->load() > 0.5f;
+    bool midSolo = midParams.solo->load() > 0.5f;
+    bool midHighSolo = midHighParams.solo->load() > 0.5f;
+    bool highSolo = highParams.solo->load() > 0.5f;
     bool anySolo = subSolo || lowSolo || midSolo || midHighSolo || highSolo;
 
     // Setup compressors before chunk loop
-    auto configComp = [&](LA2AOptoCompressor& comp, const juce::String& prefix)
+    auto configComp = [&](LA2AOptoCompressor& comp, const BandParams& params)
     {
         comp.setAdvanceMode(isAdvance);
-        comp.setMakeupGainDb(apvts.getRawParameterValue(prefix + "_gain")->load());
-        comp.setTubeWarmth(apvts.getRawParameterValue(prefix + "_warmth")->load());
-        comp.setBypass(apvts.getRawParameterValue(prefix + "_bypass")->load() > 0.5f);
-        comp.setMuted(apvts.getRawParameterValue(prefix + "_mute")->load() > 0.5f);
+        comp.setMakeupGainDb(params.gain->load());
+        comp.setTubeWarmth(params.warmth->load());
+        comp.setBypass(params.bypass->load() > 0.5f);
+        comp.setMuted(params.mute->load() > 0.5f);
 
         if (!isAdvance)
         {
-            comp.setPeakReduction(apvts.getRawParameterValue(prefix + "_peak_reduction")->load());
-            comp.setLimitMode(apvts.getRawParameterValue(prefix + "_mode")->load() > 0.5f);
+            comp.setPeakReduction(params.peakReduction->load());
+            comp.setLimitMode(params.limitMode->load() > 0.5f);
         }
         else
         {
-            auto* engineParam = dynamic_cast<juce::AudioParameterChoice*>(apvts.getParameter(prefix + "_engine"));
-            int engIdx = engineParam ? engineParam->getIndex() : 1;
+            int engIdx = params.engine ? params.engine->getIndex() : 1;
             comp.setEngineType(engIdx == 0 ? LA2AOptoCompressor::Engine_Single : LA2AOptoCompressor::Engine_Dual);
 
-            comp.setThresholdDb(apvts.getRawParameterValue(prefix + "_threshold")->load());
-            comp.setRatio(apvts.getRawParameterValue(prefix + "_ratio")->load());
-            comp.setAttackMs(apvts.getRawParameterValue(prefix + "_attack")->load());
-            comp.setReleaseMs(apvts.getRawParameterValue(prefix + "_release")->load());
-            comp.setKneeDb(apvts.getRawParameterValue(prefix + "_knee")->load());
-            comp.setBandMix(apvts.getRawParameterValue(prefix + "_band_mix")->load());
+            comp.setThresholdDb(params.threshold->load());
+            comp.setRatio(params.ratio->load());
+            comp.setAttackMs(params.attack->load());
+            comp.setReleaseMs(params.release->load());
+            comp.setKneeDb(params.knee->load());
+            comp.setBandMix(params.bandMix->load());
         }
     };
 
-    configComp(subCompressor, "sub");
-    configComp(lowCompressor, "low");
-    configComp(midCompressor, "mid");
-    configComp(midHighCompressor, "mid_high");
-    configComp(highCompressor, "high");
+    configComp(subCompressor, subParams);
+    configComp(lowCompressor, lowParams);
+    configComp(midCompressor, midParams);
+    configComp(midHighCompressor, midHighParams);
+    configComp(highCompressor, highParams);
 
     // Process in safe fixed-size chunks (avoids memory allocation and buffer overflow)
     for (int offset = 0; offset < totalSamples; offset += CHUNK_SIZE)
@@ -453,10 +487,10 @@ void MultibandCompressor5BAudioProcessor::processAudio(juce::AudioBuffer<SampleT
         const int procSamples = static_cast<int>(procBlock.getNumSamples());
 
         // 4. Update smoothed crossover points
-        float f1 = apvts.getRawParameterValue("sub_low_freq")->load();
-        float f2 = apvts.getRawParameterValue("low_mid_freq")->load();
-        float f3 = apvts.getRawParameterValue("mid_high_freq")->load();
-        float f4 = apvts.getRawParameterValue("high_super_freq")->load();
+        float f1 = paramSubLowFreq->load();
+        float f2 = paramLowMidFreq->load();
+        float f3 = paramMidHighFreq->load();
+        float f4 = paramHighSuperFreq->load();
         smoothedF1.setTargetValue(f1);
         smoothedF2.setTargetValue(f2);
         smoothedF3.setTargetValue(f3);

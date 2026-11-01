@@ -590,6 +590,7 @@ void MultibandCompressor5BAudioProcessorEditor::timerCallback()
 {
     if (!isShowing())
         return;
+    audioProcessor.pollLiveParameters();
 
     // Update live master meters
     if (masterMeterPanel != nullptr)

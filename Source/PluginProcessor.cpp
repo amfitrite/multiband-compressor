@@ -393,7 +393,6 @@ void MultibandCompressor5BAudioProcessor::processAudio(juce::AudioBuffer<SampleT
 
     if (totalSamples == 0 || numChannels == 0) return;
 
-    pollLiveParameters();
 
     // Check oversampling factor change
     int osIdx = currentOversamplingIndex.load(std::memory_order_relaxed);

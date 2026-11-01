@@ -68,6 +68,7 @@ public:
     int getCurrentLatencySamples() const { return currentLatencyReport.load(std::memory_order_relaxed); }
 
     void publishLiveParameters();
+    void pollLiveParameters();
 
 private:
     struct CachedParams
@@ -116,7 +117,6 @@ private:
         BandParams sub, low, mid, mid_high, high;
     } cached;
 
-    void pollLiveParameters();
     LiveSyncBridge liveSync;
     std::atomic<bool> isPollingLive{ false };
 

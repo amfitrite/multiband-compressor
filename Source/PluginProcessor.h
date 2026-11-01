@@ -123,5 +123,40 @@ private:
 
     PresetManager presetManager;
 
+    // Cached parameter pointers for real-time thread safety
+    std::atomic<float>* paramInputGain = nullptr;
+    std::atomic<float>* paramOutputGain = nullptr;
+    std::atomic<float>* paramMix = nullptr;
+    std::atomic<float>* paramUiMode = nullptr;
+
+    std::atomic<float>* paramSubLowFreq = nullptr;
+    std::atomic<float>* paramLowMidFreq = nullptr;
+    std::atomic<float>* paramMidHighFreq = nullptr;
+    std::atomic<float>* paramHighSuperFreq = nullptr;
+
+    struct BandParams {
+        std::atomic<float>* gain = nullptr;
+        std::atomic<float>* warmth = nullptr;
+        std::atomic<float>* bypass = nullptr;
+        std::atomic<float>* mute = nullptr;
+        std::atomic<float>* peakReduction = nullptr;
+        std::atomic<float>* limitMode = nullptr;
+        std::atomic<float>* threshold = nullptr;
+        std::atomic<float>* ratio = nullptr;
+        std::atomic<float>* attack = nullptr;
+        std::atomic<float>* release = nullptr;
+        std::atomic<float>* knee = nullptr;
+        std::atomic<float>* bandMix = nullptr;
+        std::atomic<float>* solo = nullptr;
+        juce::AudioParameterChoice* engine = nullptr;
+    };
+
+    BandParams subParams;
+    BandParams lowParams;
+    BandParams midParams;
+    BandParams midHighParams;
+    BandParams highParams;
+
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MultibandCompressor5BAudioProcessor)
 };

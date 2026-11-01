@@ -310,28 +310,30 @@ void MultibandCompressor5BAudioProcessorEditor::setupBandStrip(
         audioProcessor.getAPVTS(), prefix + "_gain", strip.gainSlider);
 
     initKnob(strip.warmthSlider, strip.warmthLabel, "WARMTH", " %");
+    strip.warmthSlider.getProperties().set("isWarmthKnob", true);
     strip.warmthAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
         audioProcessor.getAPVTS(), prefix + "_warmth", strip.warmthSlider);
 
     // Buttons
-    auto setupBtn = [this](juce::ToggleButton& b, const juce::String& text, juce::Colour col)
+    auto setupBtn = [this](juce::ToggleButton& b, const juce::String& text, juce::Colour col, const juce::String& tooltip)
     {
         b.setButtonText(text);
+        b.setTooltip(tooltip);
         b.getProperties().set("btnColour", static_cast<int>(col.getARGB()));
         addAndMakeVisible(b);
     };
 
-    setupBtn(strip.soloButton, "SOLO", juce::Colour(0xfff1c40f));
+    setupBtn(strip.soloButton, "SOLO", juce::Colour(0xfff1c40f), "Solo this frequency band");
     strip.soloAttach = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
         audioProcessor.getAPVTS(), prefix + "_solo", strip.soloButton);
     strip.soloButton.onClick = [this] { audioProcessor.publishLiveParameters(); };
 
-    setupBtn(strip.muteButton, "MUTE", juce::Colour(0xffe74c3c));
+    setupBtn(strip.muteButton, "MUTE", juce::Colour(0xffe74c3c), "Mute this frequency band");
     strip.muteAttach = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
         audioProcessor.getAPVTS(), prefix + "_mute", strip.muteButton);
     strip.muteButton.onClick = [this] { audioProcessor.publishLiveParameters(); };
 
-    setupBtn(strip.bypassButton, "BYPASS", juce::Colour(0xff707b8c));
+    setupBtn(strip.bypassButton, "BYPASS", juce::Colour(0xff707b8c), "Bypass processing for this band");
     strip.bypassAttach = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(
         audioProcessor.getAPVTS(), prefix + "_bypass", strip.bypassButton);
     strip.bypassButton.onClick = [this] { audioProcessor.publishLiveParameters(); };
@@ -341,7 +343,7 @@ void MultibandCompressor5BAudioProcessorEditor::setupBandStrip(
     strip.peakReductionAttach = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
         audioProcessor.getAPVTS(), prefix + "_peak_reduction", strip.peakReductionSlider);
 
-    setupBtn(strip.modeButton, "COMP", accentColour);
+    setupBtn(strip.modeButton, "COMP", accentColour, "Toggle between Compress and Limit behavior");
     strip.modeButton.onClick = [&strip]
     {
         strip.modeButton.setButtonText(strip.modeButton.getToggleState() ? "LIMIT" : "COMP");
@@ -350,7 +352,7 @@ void MultibandCompressor5BAudioProcessorEditor::setupBandStrip(
         audioProcessor.getAPVTS(), prefix + "_mode", strip.modeButton);
 
     // Advance Mode
-    setupBtn(strip.engineButton, "DUAL OPTO", accentColour);
+    setupBtn(strip.engineButton, "DUAL OPTO", accentColour, "Toggle between Dual Opto (LA-2A) and VCA Precision engines");
     strip.engineButton.onClick = [&strip]
     {
         strip.engineButton.setButtonText(strip.engineButton.getToggleState() ? "DUAL OPTO" : "VCA PREC");

@@ -114,20 +114,51 @@ public:
 
         // --- 4. BEVELED INNER METAL / BAKELITE CAP ---
         auto innerBounds = knobBounds.reduced(isBigMainKnob ? 4.5f : 3.2f);
-        juce::ColourGradient capGrad(juce::Colour(0xff333a46), center.x - innerBounds.getWidth() * 0.35f, center.y - innerBounds.getHeight() * 0.35f,
-                                     juce::Colour(0xff13161a), center.x + innerBounds.getWidth() * 0.35f, center.y + innerBounds.getHeight() * 0.35f, false);
-        g.setGradientFill(capGrad);
+        bool isWarmthKnob = slider.getProperties().contains("isWarmthKnob");
+
+        if (isWarmthKnob)
+        {
+            // Warm, tube-like glowing inner cap for the Warmth slider
+            juce::ColourGradient capGrad(juce::Colour(0xff4a2311), center.x, center.y,
+                                         juce::Colour(0xff1f0c05), center.x, center.y + innerBounds.getHeight() * 0.5f, true);
+            g.setGradientFill(capGrad);
+        }
+        else
+        {
+            juce::ColourGradient capGrad(juce::Colour(0xff333a46), center.x - innerBounds.getWidth() * 0.35f, center.y - innerBounds.getHeight() * 0.35f,
+                                         juce::Colour(0xff13161a), center.x + innerBounds.getWidth() * 0.35f, center.y + innerBounds.getHeight() * 0.35f, false);
+            g.setGradientFill(capGrad);
+        }
+
         g.fillEllipse(innerBounds);
 
         // Machined concentric ring highlights (sunburst / lathe lines)
-        g.setColour(juce::Colour(0xff576579).withAlpha(0.6f));
+        g.setColour(isWarmthKnob ? juce::Colour(0xff8c3b1a).withAlpha(0.6f) : juce::Colour(0xff576579).withAlpha(0.6f));
         g.drawEllipse(innerBounds, 1.3f);
 
         auto coreBounds = innerBounds.reduced(isBigMainKnob ? 5.5f : 3.5f);
-        g.setColour(juce::Colour(0xff222832));
-        g.fillEllipse(coreBounds);
-        g.setColour(juce::Colour(0xff3f4b5c).withAlpha(0.45f));
-        g.drawEllipse(coreBounds, 1.0f);
+
+        if (isWarmthKnob)
+        {
+            // Simulating a glowing tube filament core
+            g.setColour(juce::Colour(0xffe64a19));
+            g.fillEllipse(coreBounds);
+            g.setColour(juce::Colour(0xffff8a65).withAlpha(0.8f));
+            g.drawEllipse(coreBounds, 1.5f);
+
+            // Soft inner glow
+            juce::ColourGradient glowGrad(juce::Colour(0xffffa726).withAlpha(0.4f), center.x, center.y,
+                                          juce::Colours::transparentWhite, center.x, center.y + coreBounds.getHeight() * 0.5f, true);
+            g.setGradientFill(glowGrad);
+            g.fillEllipse(coreBounds);
+        }
+        else
+        {
+            g.setColour(juce::Colour(0xff222832));
+            g.fillEllipse(coreBounds);
+            g.setColour(juce::Colour(0xff3f4b5c).withAlpha(0.45f));
+            g.drawEllipse(coreBounds, 1.0f);
+        }
 
         // --- 5. PRECISION ENGRAVED ANALOG POINTER NEEDLE ---
         float needleStartR = isBigMainKnob ? 4.5f : 2.5f;
@@ -144,14 +175,15 @@ public:
         g.setColour(juce::Colours::black.withAlpha(0.6f));
         g.drawLine(pStart.x + 0.8f, pStart.y + 0.8f, pEnd.x + 0.8f, pEnd.y + 0.8f, isBigMainKnob ? 2.6f : 2.0f);
 
-        // Needle Line (White recessed enamel)
-        g.setColour(juce::Colours::white);
+        // Needle Line (White recessed enamel or warm glowing orange line)
+        g.setColour(isWarmthKnob ? juce::Colour(0xffffb74d) : juce::Colours::white);
         g.drawLine(pStart.x, pStart.y, pEnd.x, pEnd.y, isBigMainKnob ? 2.2f : 1.7f);
 
         // Pointer Tip Glowing Dot
-        g.setColour(accentCol.withAlpha(0.85f));
+        g.setColour(isWarmthKnob ? juce::Colour(0xffff8a65).withAlpha(0.9f) : accentCol.withAlpha(0.85f));
         g.fillEllipse(pEnd.x - 2.8f, pEnd.y - 2.8f, 5.6f, 5.6f);
-        g.setColour(juce::Colours::white);
+
+        g.setColour(isWarmthKnob ? juce::Colour(0xffffe0b2) : juce::Colours::white);
         g.fillEllipse(pEnd.x - 1.3f, pEnd.y - 1.3f, 2.6f, 2.6f);
     }
 

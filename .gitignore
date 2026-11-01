@@ -1,0 +1,40 @@
+# Visual Studio / MSBuild build output
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build artifacts
+Builds/VisualStudio2022/x64/
+Builds/VisualStudio2022/Win32/
+Builds/VisualStudio2022/ARM64/
+Builds/**/x64/
+Builds/**/Win32/
+Builds/**/ARM64/
+Builds/**/Debug/
+Builds/**/Release/
+Builds/**/obj/
+Builds/**/bin/
+x64/
+Win32/
+Debug/
+Release/
+
+# Binary & intermediate files
+*.obj
+*.ilk
+*.pdb
+*.tlog
+*.idb
+*.ipch
+*.pch
+*.res
+*.log
+*.vst3
+*.exe
+*.dll
+
+# Visual Studio DB & cache
+*.VC.db
+*.VC.opendb

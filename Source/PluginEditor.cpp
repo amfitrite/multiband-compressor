@@ -231,10 +231,6 @@ MultibandCompressor5BAudioProcessorEditor::MultibandCompressor5BAudioProcessorEd
             settingsPanel->setVisible(false);
         gearButton.setToggleState(false, juce::dontSendNotification);
     };
-    settingsPanel->onGpuAccelerationChanged = [this](bool enabled)
-    {
-        setGpuAcceleration(enabled);
-    };
     addChildComponent(*settingsPanel); // Initially hidden
 
     setResizable(true, true);

@@ -214,8 +214,6 @@ private:
     // Tooltip Manager (Required to display tooltips on hover)
     juce::TooltipWindow tooltipWindow;
 
-    // GPU Acceleration Context (Stubbed for 100% stable DirectWrite / GDI software rendering in Eq APO & DAWs)
-    void setGpuAcceleration(bool enabled) { juce::ignoreUnused(enabled); }
 
     // Cached frequencies to eliminate redundant string allocations in timerCallback
     float lastFreq1 = -1.0f, lastFreq2 = -1.0f, lastFreq3 = -1.0f, lastFreq4 = -1.0f;

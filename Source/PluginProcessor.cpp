@@ -104,12 +104,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout MultibandCompressor5BAudioPr
 {
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
-    // Global UI Mode & Oversampling & GPU Acceleration
+    // Global UI Mode & Oversampling (Pure CPU Software Rendering)
     layout.add(std::make_unique<juce::AudioParameterBool>(
         juce::ParameterID{ "ui_mode", 1 }, "UI Mode", false));
-
-    layout.add(std::make_unique<juce::AudioParameterBool>(
-        juce::ParameterID{ "gpu_accel", 1 }, "GPU Acceleration", false));
 
     juce::StringArray oversamplingChoices{ "1x (Off)", "2x", "4x", "8x", "16x" };
     layout.add(std::make_unique<juce::AudioParameterChoice>(

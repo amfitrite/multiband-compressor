@@ -1,5 +1,5 @@
 @echo off
-set VERSION=2.02
+set VERSION=2.14
 echo ====================================================
 echo Deploying Multiband Compressor %VERSION% VST3
 echo ====================================================

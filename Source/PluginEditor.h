@@ -211,6 +211,9 @@ private:
     GearButton gearButton;
     std::unique_ptr<SettingsPanel> settingsPanel;
 
+    // Tooltip Manager (Required to display tooltips on hover)
+    juce::TooltipWindow tooltipWindow;
+
     // GPU Acceleration Context (Stubbed for 100% stable DirectWrite / GDI software rendering in Eq APO & DAWs)
     void setGpuAcceleration(bool enabled) { juce::ignoreUnused(enabled); }
 

@@ -6,8 +6,12 @@ MultibandCompressor5BAudioProcessorEditor::MultibandCompressor5BAudioProcessorEd
 {
     setLookAndFeel(&yamahaLF);
 
+    // Tooltip Window styling
+    tooltipWindow.setMillisecondsBeforeTipAppears(700);
+
     // Header Mode Switch Button
     modeToggleButton.setButtonText("MODE: NORMAL");
+    modeToggleButton.setTooltip("Toggle between Normal (Optical) and Advance (Precision) modes");
     modeToggleButton.getProperties().set("btnColour", static_cast<int>(juce::Colour(0xff00d2d3).getARGB()));
     modeToggleButton.onClick = [this]
     {
@@ -22,6 +26,7 @@ MultibandCompressor5BAudioProcessorEditor::MultibandCompressor5BAudioProcessorEd
 
     // Reset to Default Button
     resetDefaultButton.setButtonText("RESET DEFAULT");
+    resetDefaultButton.setTooltip("Reset all parameters to their default states");
     resetDefaultButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff252930));
     resetDefaultButton.setColour(juce::TextButton::textColourOffId, juce::Colour(0xffe17055));
     resetDefaultButton.onClick = [this]
@@ -69,6 +74,7 @@ MultibandCompressor5BAudioProcessorEditor::MultibandCompressor5BAudioProcessorEd
 
     // Save Preset Button
     savePresetButton.setButtonText("SAVE");
+    savePresetButton.setTooltip("Save current state as a new preset");
     savePresetButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff1e3799).withAlpha(0.6f));
     savePresetButton.setColour(juce::TextButton::textColourOffId, juce::Colour(0xff70a1ff));
     savePresetButton.onClick = [this]
@@ -94,6 +100,7 @@ MultibandCompressor5BAudioProcessorEditor::MultibandCompressor5BAudioProcessorEd
 
     // Load Preset Button
     loadPresetButton.setButtonText("LOAD");
+    loadPresetButton.setTooltip("Load an external preset file (.json)");
     loadPresetButton.setColour(juce::TextButton::buttonColourId, juce::Colour(0xff252930));
     loadPresetButton.setColour(juce::TextButton::textColourOffId, juce::Colour(0xffa4b0be));
     loadPresetButton.onClick = [this]
@@ -231,8 +238,8 @@ MultibandCompressor5BAudioProcessorEditor::MultibandCompressor5BAudioProcessorEd
     addChildComponent(*settingsPanel); // Initially hidden
 
     setResizable(true, true);
-    setResizeLimits(800, 560, 1920, 1200);
-    setSize(1100, 720);
+    setResizeLimits(900, 700, 1920, 1400);
+    setSize(1280, 920);
     audioProcessor.publishLiveParameters();
     startTimerHz(30);
 }
@@ -508,34 +515,34 @@ void MultibandCompressor5BAudioProcessorEditor::resized()
 
         if (!isAdv)
         {
-            // NORMAL MODE - Authentic 1:1 Analog Sized Knobs (~70px diameter)
+            // NORMAL MODE - Authentic 1:1 Analog Sized Knobs (~100px diameter)
             col.removeFromTop(6);
             strip->modeButton.setBounds(col.removeFromTop(22).reduced(12, 0));
 
             col.removeFromTop(8);
-            auto prArea = col.removeFromTop(96);
+            auto prArea = col.removeFromTop(130);
             strip->peakReductionLabel.setBounds(prArea.removeFromTop(15));
             strip->peakReductionSlider.setBounds(prArea);
 
             col.removeFromTop(8);
-            auto gainArea = col.removeFromTop(96);
+            auto gainArea = col.removeFromTop(130);
             strip->gainLabel.setBounds(gainArea.removeFromTop(15));
             strip->gainSlider.setBounds(gainArea);
 
             col.removeFromTop(8);
-            auto warmthArea = col.removeFromTop(96);
+            auto warmthArea = col.removeFromTop(130);
             strip->warmthLabel.setBounds(warmthArea.removeFromTop(15));
             strip->warmthSlider.setBounds(warmthArea);
         }
         else
         {
-            // ADVANCE MODE - Expanded Dual Knob Pairs (~52px diameter)
+            // ADVANCE MODE - Expanded Dual Knob Pairs (~80px diameter)
             col.removeFromTop(4);
             strip->engineButton.setBounds(col.removeFromTop(20).reduced(8, 0));
 
             auto layoutKnobPair = [&col](juce::Slider& s1, juce::Label& l1, juce::Slider& s2, juce::Label& l2)
             {
-                auto pairArea = col.removeFromTop(82);
+                auto pairArea = col.removeFromTop(100);
                 auto leftHalf = pairArea.removeFromLeft(pairArea.getWidth() / 2);
                 auto rightHalf = pairArea;
 
